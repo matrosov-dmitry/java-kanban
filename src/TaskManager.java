@@ -4,16 +4,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class Manager {
+public class TaskManager {
     private static final HashMap<Integer, Task> tasksList = new HashMap<>();
     private static final HashMap<Integer, Epic> epicsList = new HashMap<>();
     private static final HashMap<Integer, Subtask> subTasksList = new HashMap<>();
 
     private int createUid = 1;
 
-    public Manager() {
-
-    }
 
     // Создание
 
@@ -34,7 +31,6 @@ public class Manager {
     public Subtask addSubTask(Subtask subtask) {
 
         if (!epicsList.containsKey(subtask.getEpicUid())) {
-            System.out.println("Epics don`t create");
             return subtask;
         }
 
@@ -96,26 +92,24 @@ public class Manager {
         oldSubtask.setName(updatedSubtask.getName());
         oldSubtask.setDescription(updatedSubtask.getDescription());
         oldSubtask.setStatus(updatedSubtask.getStatus());
+        updateEpicStatus(epicsList.get(updatedSubtask.getEpicUid()));
 
-        return updatedSubtask;
+        return oldSubtask;
     }
 
 
     // Вывод всех задач
 
-    public void printAllTasks() {
-
-        System.out.println(tasksList);
+    public ArrayList<Task> getTasks() {
+        return new ArrayList<>(tasksList.values());
     }
 
-    public void printAllEpics() {
-
-        System.out.println(epicsList);
+    public ArrayList<Epic> getEpics() {
+        return new ArrayList<Epic>(epicsList.values());
     }
 
-    public void printAllSubTasks() {
-
-        System.out.println(subTasksList);
+    public ArrayList<Subtask> getSubtasks() {
+        return new ArrayList<Subtask>(subTasksList.values());
     }
 
     // Вывод подзадач по номеру эпика
@@ -183,15 +177,8 @@ public class Manager {
         }
     }
 
-    // Удаление всех задач
+    // Удаление
 
-    public void removeAll() {
-
-        createUid = 1;
-        tasksList.clear();
-        epicsList.clear();
-        subTasksList.clear();
-    }
 
     public void removeAllTasks() {
         tasksList.clear();
@@ -216,11 +203,11 @@ public class Manager {
 
     // Обновление статуса эпика
 
-    public Epic updateEpicStatus(Epic epic) {
+    private void updateEpicStatus(Epic epic) {
         List<Integer> subtaskIds = epic.getSubTaskList();
         if (subtaskIds.isEmpty()) {
             epic.setStatus(Status.NEW);
-            return epic;
+            return;
         }
 
 
@@ -248,7 +235,7 @@ public class Manager {
             epic.setStatus(Status.IN_PROGRESS);
         }
 
-        return epic;
+        return;
     }
 
 

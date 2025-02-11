@@ -2,7 +2,7 @@ import task.*;
 
 public class Main {
     public static void main(String[] args) {
-        Manager manager = new Manager();
+        TaskManager manager = new TaskManager();
 
         Task taskMarket = manager.createTask(new Task("Магазин", "Купить продукты", Status.NEW));
         Task taskWork = manager.createTask(new Task("Работа", "Проверить почту", Status.NEW));
@@ -51,21 +51,22 @@ public class Main {
         Subtask updatedSubtask = new Subtask(subtaskMaterials);
         updatedSubtask.setStatus(Status.DONE);
         subtaskMaterials = manager.updateSubtask(updatedSubtask);
-        epicRepairs = manager.updateEpicStatus(epicRepairs);
         System.out.println(subtaskMaterials);
         System.out.println(epicRepairs);
         System.out.println();
 
         System.out.println("===Удаление по UID =====================");
-        manager.printAllTasks();
+        System.out.println("Вывод списка задач");
+        System.out.println(manager.getTasks());
         System.out.println("Удаление taskMarket");
         manager.deleteTaskByUid(taskMarket.getUid());
-        manager.printAllTasks();
+        System.out.println(manager.getTasks());
         System.out.println();
-        manager.printAllEpics();
+        System.out.println("Вывод списка эпиков");
+        System.out.println(manager.getEpics());
         System.out.println("Удаление epicPracticum");
         manager.deleteEpicByUid(epicPracticum.getUid());
-        manager.printAllEpics();
+        System.out.println(manager.getEpics());
 
 
     }
