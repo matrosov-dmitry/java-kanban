@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 
 public class TaskManager {
-    private static final HashMap<Integer, Task> tasksList = new HashMap<>();
-    private static final HashMap<Integer, Epic> epicsList = new HashMap<>();
-    private static final HashMap<Integer, Subtask> subTasksList = new HashMap<>();
+    private final HashMap<Integer, Task> tasksList = new HashMap<>();
+    private final HashMap<Integer, Epic> epicsList = new HashMap<>();
+    private final HashMap<Integer, Subtask> subTasksList = new HashMap<>();
 
     private int createUid = 1;
 
@@ -235,7 +235,6 @@ public class TaskManager {
             epic.setStatus(Status.IN_PROGRESS);
         }
 
-        return;
     }
 
 
