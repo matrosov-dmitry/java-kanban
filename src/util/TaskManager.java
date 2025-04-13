@@ -27,8 +27,6 @@ public interface TaskManager {
 
   List<Task> getHistory();
 
-  // Расчет статуса эпика
-  void updateEpicStatus(Epic epic);
 
   // Обновление задач
   void updateTask(Task task);
