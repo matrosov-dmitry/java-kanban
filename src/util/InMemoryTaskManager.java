@@ -17,9 +17,6 @@ public class InMemoryTaskManager implements TaskManager {
   private final HistoryManager historyManager = Managers.getDefaultHistory();
   private int newId = 1;
 
-  private int generateID() {
-    return newId++;
-  }
 
   // Создание задач
   @Override
@@ -244,5 +241,9 @@ public class InMemoryTaskManager implements TaskManager {
     } else {
       epic.setStatus(TaskStatus.IN_PROGRESS);
     }
+  }
+
+  private int generateID() {
+    return newId++;
   }
 }
