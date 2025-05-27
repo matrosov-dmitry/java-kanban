@@ -14,9 +14,16 @@ public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> tasks = new HashMap<>();
     private final HashMap<Integer, Subtask> subtasks = new HashMap<>();
     private final HashMap<Integer, Epic> epics = new HashMap<>();
-    private final HistoryManager historyManager = Managers.getDefaultHistory();
-    private int newId = 1;
+    protected final HistoryManager historyManager = Managers.getDefaultHistory();
+    protected int newId = 1; // Изменили с private на protected для доступа в подклассах
 
+    public int getNextId() {
+        return newId;
+    }
+
+    public void setNextId(int id) {
+        this.newId = id;
+    }
 
     // Создание задач
     @Override
