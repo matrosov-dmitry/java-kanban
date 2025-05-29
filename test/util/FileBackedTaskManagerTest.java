@@ -26,7 +26,7 @@ class FileBackedTaskManagerTest {
 
     @Test
     void shouldSaveAndLoadEmptyFile() {
-        taskManager.save();
+        // Не вызываем taskManager.save() вручную!
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
         assertTrue(loadedManager.getAllTasks().isEmpty());
         assertTrue(loadedManager.getAllEpics().isEmpty());
@@ -50,7 +50,6 @@ class FileBackedTaskManagerTest {
         subtask.setStatus(TaskStatus.DONE);
         taskManager.createSubtask(subtask);
 
-        taskManager.save();
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
 
@@ -87,8 +86,6 @@ class FileBackedTaskManagerTest {
         taskManager.getEpicById(epic.getId());
         taskManager.getSubtaskById(subtask.getId());
 
-        // Сохраняем состояние в файл
-        taskManager.save();
 
         // Загружаем состояние из файла
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
@@ -96,10 +93,7 @@ class FileBackedTaskManagerTest {
         // Проверяем, что история просмотров загружена правильно
         List<Task> history = loadedManager.getHistory();
 
-        // Проверка размера истории
         assertEquals(3, history.size(), "История должна содержать 3 задачи");
-
-        // Проверка идентификаторов и порядка задач в истории
         assertEquals(task.getId(), history.get(0).getId());
         assertEquals(epic.getId(), history.get(1).getId());
         assertEquals(subtask.getId(), history.get(2).getId());
