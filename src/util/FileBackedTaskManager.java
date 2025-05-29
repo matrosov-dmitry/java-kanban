@@ -17,39 +17,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         this.file = file;
     }
 
-    // Преобразование истории в строку (только идентификаторы)
-    private static String historyToString(List<Task> history) {
-        if (history == null || history.isEmpty()) {
-            return ""; // Возвращаем пустую строку, если история пуста
-        }
-        StringBuilder sb = new StringBuilder();
-        for (Task task : history) {
-            sb.append(task.getId()).append(",");
-        }
-        if (sb.length() > 0) {
-            sb.deleteCharAt(sb.length() - 1); // Удаляем последнюю запятую
-        }
-        return sb.toString();
-    }
-
-    // Преобразование строки в список идентификаторов истории
-    private static List<Integer> historyFromString(String value) {
-        if (value == null || value.isBlank()) {
-            return new ArrayList<>(); // Возвращаем пустой список, если строка пуста
-        }
-        String[] parts = value.split(",");
-        List<Integer> history = new ArrayList<>();
-        for (String part : parts) {
-            try {
-                history.add(Integer.parseInt(part.trim()));
-            } catch (NumberFormatException e) {
-                throw new ManagerSaveException("Некорректный формат идентификатора в истории: " + part);
-            }
-        }
-        return history;
-    }
-
-    // Загрузка менеджера из файла
+    // Публичные методы
     public static FileBackedTaskManager loadFromFile(File file) {
         FileBackedTaskManager manager = new FileBackedTaskManager(file);
 
@@ -114,7 +82,36 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return manager;
     }
 
-    // Создание задачи из строки CSV
+    private static String historyToString(List<Task> history) {
+        if (history == null || history.isEmpty()) {
+            return ""; // Возвращаем пустую строку, если история пуста
+        }
+        StringBuilder sb = new StringBuilder();
+        for (Task task : history) {
+            sb.append(task.getId()).append(",");
+        }
+        if (sb.length() > 0) {
+            sb.deleteCharAt(sb.length() - 1); // Удаляем последнюю запятую
+        }
+        return sb.toString();
+    }
+
+    private static List<Integer> historyFromString(String value) {
+        if (value == null || value.isBlank()) {
+            return new ArrayList<>(); // Возвращаем пустой список, если строка пуста
+        }
+        String[] parts = value.split(",");
+        List<Integer> history = new ArrayList<>();
+        for (String part : parts) {
+            try {
+                history.add(Integer.parseInt(part.trim()));
+            } catch (NumberFormatException e) {
+                throw new ManagerSaveException("Некорректный формат идентификатора в истории: " + part);
+            }
+        }
+        return history;
+    }
+
     private static Task fromString(String value) {
         String[] parts = value.split(",");
 
@@ -169,71 +166,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    // Метод для автосохранения данных в формате CSV
-    public void save() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
-            // Запись заголовка CSV
-            writer.write("id,type,name,status,description,epic\n");
-
-            // Запись обычных задач
-            for (Task task : getAllTasks()) {
-                writer.write(toString(task) + "\n");
-            }
-
-            // Запись эпиков
-            for (Epic epic : getAllEpics()) {
-                writer.write(toString(epic) + "\n");
-            }
-
-            // Запись подзадач
-            for (Subtask subtask : getAllSubtasks()) {
-                writer.write(toString(subtask) + "\n");
-            }
-
-            // Запись истории
-            List<Task> history = getHistory();
-            if (!history.isEmpty()) {
-                writer.write("\n" + historyToString(history));
-            }
-
-        } catch (IOException e) {
-            throw new ManagerSaveException("Ошибка при сохранении в файл: " + e.getMessage(), e);
-        }
-    }
-
-    // Получение строкового представления задачи для записи в формате CSV
-    private String toString(Task task) {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append(task.getId()).append(",");
-
-        if (task instanceof Epic) {
-            sb.append("EPIC,");
-        } else if (task instanceof Subtask) {
-            sb.append("SUBTASK,");
-        } else {
-            sb.append("TASK,");
-        }
-
-        sb.append(task.getName()).append(",")
-                .append(task.getStatus()).append(",")
-                .append(task.getDescription()).append(",");
-
-        // Добавляем id эпика только для подзадач
-        if (task instanceof Subtask) {
-            sb.append(((Subtask) task).getEpicId());
-        }
-
-        return sb.toString();
-    }
-
-    // Геттер для nextId
     @Override
     public int getNextId() {
         return super.getNextId();
     }
 
-    // Сеттер для nextId
     @Override
     public void setNextId(int id) {
         super.setNextId(id);
@@ -339,5 +276,62 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         Epic epic = super.getEpicById(id);
         save();
         return epic;
+    }
+
+    // Приватные методы
+    void save() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
+            // Запись заголовка CSV
+            writer.write("id,type,name,status,description,epic\n");
+
+            // Запись обычных задач
+            for (Task task : getAllTasks()) {
+                writer.write(toString(task) + "\n");
+            }
+
+            // Запись эпиков
+            for (Epic epic : getAllEpics()) {
+                writer.write(toString(epic) + "\n");
+            }
+
+            // Запись подзадач
+            for (Subtask subtask : getAllSubtasks()) {
+                writer.write(toString(subtask) + "\n");
+            }
+
+            // Запись истории
+            List<Task> history = getHistory();
+            if (!history.isEmpty()) {
+                writer.write("\n" + historyToString(history));
+            }
+
+        } catch (IOException e) {
+            throw new ManagerSaveException("Ошибка при сохранении в файл: " + e.getMessage(), e);
+        }
+    }
+
+    private String toString(Task task) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(task.getId()).append(",");
+
+        if (task instanceof Epic) {
+            sb.append("EPIC,");
+        } else if (task instanceof Subtask) {
+            sb.append("SUBTASK,");
+        } else {
+            sb.append("TASK,");
+        }
+
+        sb.append(task.getName()).append(",")
+                .append(task.getStatus()).append(",")
+                .append(task.getDescription()).append(",");
+
+        // Добавляем id эпика только для подзадач
+        if (task instanceof Subtask) {
+            sb.append(((Subtask) task).getEpicId());
+        }
+
+        return sb.toString();
     }
 }
