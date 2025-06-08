@@ -18,7 +18,7 @@ public class Epic extends Task {
             this.endTime = null;
             return;
         }
-        
+
         // Рассчитываем duration как сумму продолжительностей подзадач
         this.duration = subtasks.stream()
                 .filter(s -> s.getDuration() != null)
