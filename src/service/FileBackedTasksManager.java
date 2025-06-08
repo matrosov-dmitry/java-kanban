@@ -118,22 +118,22 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             // Запись заголовка
             writer.write("id,name,description,status,duration,startTime,type,epic\n");
-            
+
             // Запись задач
             for (Task task : tasks.values()) {
                 writer.write(taskToString(task) + "\n");
             }
-            
+
             // Запись эпиков
             for (Epic epic : epics.values()) {
                 writer.write(taskToString(epic) + "\n");
             }
-            
+
             // Запись подзадач
             for (Subtask subtask : subtasks.values()) {
                 writer.write(taskToString(subtask) + "\n");
             }
-            
+
             // Добавление пустой строки и истории просмотров
             writer.write("\n");
             // Здесь должен быть код для сохранения истории просмотров
@@ -141,20 +141,20 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
             throw new RuntimeException("Ошибка при сохранении в файл", e);
         }
     }
-    
+
     private String taskToString(Task task) {
         StringBuilder sb = new StringBuilder();
         sb.append(task.getId()).append(",");
         sb.append(task.getName()).append(",");
         sb.append(task.getDescription()).append(",");
         sb.append(task.getStatus()).append(",");
-        
+
         String durationStr = task.getDuration() != null ? String.valueOf(task.getDuration().toMinutes()) : "";
         String startTimeStr = task.getStartTime() != null ? task.getStartTime().toString() : "";
-        
+
         sb.append(durationStr).append(",");
         sb.append(startTimeStr).append(",");
-        
+
         if (task instanceof Epic) {
             sb.append("EPIC");
         } else if (task instanceof Subtask) {
@@ -163,32 +163,32 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         } else {
             sb.append("TASK");
         }
-        
+
         return sb.toString();
     }
-    
+
     private Task taskFromString(String value) {
         String[] fields = value.split(",");
-        
+
         int id = Integer.parseInt(fields[0]);
         String name = fields[1];
         String description = fields[2];
         TaskStatus status = TaskStatus.valueOf(fields[3]);
-        
+
         // Индексы для duration и startTime
         int durationIndex = 4;
         int startTimeIndex = 5;
         int typeIndex = 6;
-        
+
         Duration duration = fields.length > durationIndex && !fields[durationIndex].isEmpty()
                 ? Duration.ofMinutes(Long.parseLong(fields[durationIndex]))
                 : null;
         LocalDateTime startTime = fields.length > startTimeIndex && !fields[startTimeIndex].isEmpty()
                 ? LocalDateTime.parse(fields[startTimeIndex])
                 : null;
-        
+
         String type = fields[typeIndex];
-        
+
         switch (type) {
             case "TASK":
                 return new Task(id, name, description, status, duration, startTime);
