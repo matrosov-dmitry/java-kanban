@@ -72,14 +72,10 @@ public class InMemoryTaskManager implements TaskManager {
         if (epic == null) {
             return null;
         }
-        ArrayList<Subtask> subtaskList = new ArrayList<>();
-        for (int subtaskId : epic.getSubtaskId()) {
-            Subtask subtask = subtasks.get(subtaskId);
-            if (subtask != null) {
-                subtaskList.add(subtask);
-            }
-        }
-        return subtaskList;
+        return epic.getSubtaskId().stream()
+                .map(subtasks::get)
+                .filter(subtask -> subtask != null)
+                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
     }
 
     // Обновление задач
