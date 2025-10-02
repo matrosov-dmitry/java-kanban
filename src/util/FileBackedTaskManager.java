@@ -1,5 +1,6 @@
 package util;
 
+import exceptions.ManagerSaveException;
 import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
@@ -7,8 +8,11 @@ import tasks.TaskStatus;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private final File file;
@@ -59,13 +63,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
             if (historyIds != null && !historyIds.isEmpty()) {
                 for (Integer id : historyIds) {
-                    Task task = manager.getTaskById(id);
-                    if (task == null) {
-                        task = manager.getEpicById(id);
+                    if (manager.getTaskById(id).isPresent()) {
+                        continue;
                     }
-                    if (task == null) {
-                        task = manager.getSubtaskById(id);
+                    if (manager.getEpicById(id).isPresent()) {
+                        continue;
                     }
+                    manager.getSubtaskById(id).isPresent();
                 }
             }
 
@@ -168,22 +172,22 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public Task getTaskById(int id) {
-        Task task = super.getTaskById(id);
+    public Optional<Task> getTaskById(int id) {
+        Optional<Task> task = super.getTaskById(id);
         save();
         return task;
     }
 
     @Override
-    public Subtask getSubtaskById(int id) {
-        Subtask subtask = super.getSubtaskById(id);
+    public Optional<Subtask> getSubtaskById(int id) {
+        Optional<Subtask> subtask = super.getSubtaskById(id);
         save();
         return subtask;
     }
 
     @Override
-    public Epic getEpicById(int id) {
-        Epic epic = super.getEpicById(id);
+    public Optional<Epic> getEpicById(int id) {
+        Optional<Epic> epic = super.getEpicById(id);
         save();
         return epic;
     }
@@ -221,48 +225,31 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     private static Task fromString(String value) {
-        String[] parts = value.split(",");
-
-        if (parts.length < 5) {
+        String[] parts = value.split(",", -1);
+        if (parts.length < 7) {
             throw new ManagerSaveException("Некорректный формат строки в файле: " + value);
         }
-
-        int id;
-        try {
-            id = Integer.parseInt(parts[0]);
-        } catch (NumberFormatException e) {
-            throw new ManagerSaveException("Некорректный ID задачи: " + parts[0]);
-        }
-
+        int id = Integer.parseInt(parts[0]);
         String type = parts[1];
         String name = parts[2];
         TaskStatus status = TaskStatus.valueOf(parts[3].toUpperCase());
         String description = parts[4];
-
+        // duration
+        Duration duration = parts[5].isEmpty() ? Duration.ZERO : Duration.ofMinutes(Long.parseLong(parts[5]));
+        // startTime
+        LocalDateTime startTime = parts[6].isEmpty() ? null : LocalDateTime.parse(parts[6]);
         switch (type) {
             case "TASK":
-                Task task = new Task(name, description);
-                task.setId(id);
-                task.setStatus(status);
+                Task task = new Task(id, name, description, status, duration, startTime);
                 return task;
             case "EPIC":
-                Epic epic = new Epic(name, description);
-                epic.setId(id);
-                epic.setStatus(status);
+                Epic epic = new Epic(id, name, description);
+                // endTime (опционально, для совместимости)
+                // поля duration/startTime/endTime будут пересчитаны после загрузки всех подзадач
                 return epic;
             case "SUBTASK":
-                if (parts.length < 6) {
-                    throw new ManagerSaveException("Некорректный формат подзадачи: " + value);
-                }
-                int epicId;
-                try {
-                    epicId = Integer.parseInt(parts[5]);
-                } catch (NumberFormatException e) {
-                    throw new ManagerSaveException("Некорректный ID эпика в подзадаче: " + parts[5]);
-                }
-                Subtask subtask = new Subtask(name, description, epicId);
-                subtask.setId(id);
-                subtask.setStatus(status);
+                int epicId = parts.length > 7 && !parts[7].isEmpty() ? Integer.parseInt(parts[7]) : 0;
+                Subtask subtask = new Subtask(id, name, description, status, epicId, duration, startTime);
                 return subtask;
             default:
                 throw new ManagerSaveException("Неизвестный тип задачи: " + type);
@@ -312,10 +299,18 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 .append(task.getStatus()).append(",")
                 .append(task.getDescription()).append(",");
 
-        if (task instanceof Subtask) {
-            sb.append(((Subtask) task).getEpicId());
-        }
+        // duration (в минутах)
+        sb.append(task.getDuration() != null ? task.getDuration().toMinutes() : "").append(",");
+        // startTime (ISO)
+        sb.append(task.getStartTime() != null ? task.getStartTime().toString() : "");
 
+        if (task instanceof Subtask) {
+            sb.append(",").append(((Subtask) task).getEpicId());
+        }
+        if (task instanceof Epic) {
+            Epic epic = (Epic) task;
+            sb.append(",").append(epic.getEndTime() != null ? epic.getEndTime().toString() : "");
+        }
         return sb.toString();
     }
 }

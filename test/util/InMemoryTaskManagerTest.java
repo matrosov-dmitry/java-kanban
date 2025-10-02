@@ -9,21 +9,19 @@ import tasks.TaskStatus;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class InMemoryTaskManagerTest {
+class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
-    private InMemoryTaskManager taskManager;
-
-    @BeforeEach
-    void setUp() {
-        taskManager = new InMemoryTaskManager();
+    @Override
+    protected InMemoryTaskManager createManager() {
+        return new InMemoryTaskManager();
     }
 
     // Проверка: создаётся обычная задача и корректно извлекается по ID
     @Test
     void shouldCreateAndRetrieveTask() {
         Task task = new Task("Task", "Description");
-        Task created = taskManager.createTask(task);
-        Task retrieved = taskManager.getTaskById(created.getId());
+        Task created = manager.createTask(task);
+        Task retrieved = manager.getTaskById(created.getId()).orElse(null);
         assertEquals(created, retrieved);
     }
 
@@ -31,32 +29,32 @@ class InMemoryTaskManagerTest {
     @Test
     void shouldCreateEpicAndItsSubtasksCorrectly() {
         Epic epic = new Epic("Epic", "Epic Desc");
-        epic = taskManager.createEpic(epic);
+        epic = manager.createEpic(epic);
         Subtask sub = new Subtask("Sub", "Sub Desc");
         sub.setEpicId(epic.getId());
-        sub = taskManager.createSubtask(sub);
-        assertTrue(taskManager.getEpicById(epic.getId()).getSubtaskId().contains(sub.getId()));
+        sub = manager.createSubtask(sub);
+        assertTrue(manager.getEpicById(epic.getId()).orElseThrow().getSubtaskId().contains(sub.getId()));
     }
 
     // Проверка: после удаления подзадачи, её ID исчезает из эпика
     @Test
     void shouldRemoveSubtaskFromEpicOnDeletion() {
-        Epic epic = taskManager.createEpic(new Epic("Epic", "E"));
+        Epic epic = manager.createEpic(new Epic("Epic", "E"));
         Subtask sub = new Subtask("Sub", "S");
         sub.setEpicId(epic.getId());
-        sub = taskManager.createSubtask(sub);
-        taskManager.deleteSubtaskById(sub.getId());
-        assertFalse(taskManager.getEpicById(epic.getId()).getSubtaskId().contains(sub.getId()));
+        sub = manager.createSubtask(sub);
+        manager.deleteSubtaskById(sub.getId());
+        assertFalse(manager.getEpicById(epic.getId()).orElseThrow().getSubtaskId().contains(sub.getId()));
     }
 
     // Проверка: изменения через сеттеры не разрушают целостность данных в менеджере
     @Test
     void modifyingTaskShouldNotCorruptManagerState() {
-        Task task = taskManager.createTask(new Task("Task", "Desc"));
+        Task task = manager.createTask(new Task("Task", "Desc"));
         task.setName("Changed");
-        Task stored = taskManager.getTaskById(task.getId());
+        Task stored = manager.getTaskById(task.getId()).orElse(null);
         assertEquals("Changed", stored.getName());
         stored.setStatus(TaskStatus.DONE);
-        assertEquals(TaskStatus.DONE, taskManager.getTaskById(task.getId()).getStatus());
+        assertEquals(TaskStatus.DONE, manager.getTaskById(task.getId()).orElse(null).getStatus());
     }
 }

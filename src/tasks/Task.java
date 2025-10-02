@@ -1,5 +1,7 @@
 package tasks;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class Task {
@@ -8,12 +10,16 @@ public class Task {
     protected String description;
     protected int id;
     protected TaskStatus status;
+    protected Duration duration;
+    protected LocalDateTime startTime;
 
     public Task(String name, String description) {
         this.id = 0;
         this.name = name;
         this.description = description;
         this.status = TaskStatus.NEW;
+        this.duration = Duration.ZERO;
+        this.startTime = null;
     }
 
     public Task(int id, String name, String description, TaskStatus status) {
@@ -21,12 +27,25 @@ public class Task {
         this.name = name;
         this.description = description;
         this.status = status;
+        this.duration = Duration.ZERO;
+        this.startTime = null;
     }
 
     public Task(int id, String title, String description) {
         this.id = id;
         this.name = title;
         this.description = description;
+        this.duration = Duration.ZERO;
+        this.startTime = null;
+    }
+
+    public Task(int id, String name, String description, TaskStatus status, Duration duration, LocalDateTime startTime) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.status = status;
+        this.duration = duration;
+        this.startTime = startTime;
     }
 
     public String getName() {
@@ -61,6 +80,28 @@ public class Task {
         this.status = status;
     }
 
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        if (startTime == null || duration == null) {
+            return null;
+        }
+        return startTime.plus(duration);
+    }
 
     @Override
     public String toString() {

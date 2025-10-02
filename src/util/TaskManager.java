@@ -6,6 +6,7 @@ import tasks.Task;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public interface TaskManager {
 
@@ -26,6 +27,8 @@ public interface TaskManager {
     ArrayList<Subtask> getSubtasksOfEpic(int epicId);
 
     List<Task> getHistory();
+
+    List<Task> getPrioritizedTasks(); // Метод для получения приоритетных задач
 
 
     // Обновление задач
@@ -50,10 +53,9 @@ public interface TaskManager {
 
     void deleteEpicById(int id);
 
-    Task getTaskById(int id);
+    Optional<Task> getTaskById(int id);
 
-    Subtask getSubtaskById(int id);
+    Optional<Subtask> getSubtaskById(int id);
 
-    Epic getEpicById(int id);
+    Optional<Epic> getEpicById(int id);
 }
-
