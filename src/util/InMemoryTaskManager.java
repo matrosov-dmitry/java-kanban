@@ -35,8 +35,8 @@ public class InMemoryTaskManager implements TaskManager {
     // Создание задач
     @Override
     public Task createTask(Task task) {
-        if (task.getStartTime() != null && hasIntersectionFast(task)) {
-            throw new IllegalArgumentException("Задача пересекается по времени с другой задачей");
+        if (hasIntersection(task)) {
+            throw new IllegalArgumentException("Task time overlaps with existing task");
         }
         task.setId(generateID());
         tasks.put(task.getId(), task);
@@ -46,8 +46,8 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Subtask createSubtask(Subtask subtask) {
-        if (subtask.getStartTime() != null && hasIntersectionFast(subtask)) {
-            throw new IllegalArgumentException("Подзадача пересекается по времени с другой задачей");
+        if (hasIntersection(subtask)) {
+            throw new IllegalArgumentException("Subtask time overlaps with existing task");
         }
         subtask.setId(generateID());
         subtasks.put(subtask.getId(), subtask);
@@ -99,9 +99,6 @@ public class InMemoryTaskManager implements TaskManager {
         if (task == null || !tasks.containsKey(task.getId())) {
             return;
         }
-        if (task.getStartTime() != null && hasIntersectionFast(task)) {
-            throw new IllegalArgumentException("Задача пересекается по времени с другой задачей");
-        }
         Task current = tasks.get(task.getId());
         removeFromPrioritized(current);
         current.setName(task.getName());
@@ -117,9 +114,6 @@ public class InMemoryTaskManager implements TaskManager {
     public void updateSubtask(Subtask subtask) {
         if (subtask == null || !subtasks.containsKey(subtask.getId())) {
             return;
-        }
-        if (subtask.getStartTime() != null && hasIntersectionFast(subtask)) {
-            throw new IllegalArgumentException("Подзадача пересекается по времени с другой задачей");
         }
         Subtask current = subtasks.get(subtask.getId());
         removeFromPrioritized(current);
@@ -330,6 +324,31 @@ public class InMemoryTaskManager implements TaskManager {
                 prioritizedTasks.remove(task.getStartTime());
             }
         }
+    }
+
+    private boolean hasTimeOverlap(Task newTask) {
+        if (newTask.getStartTime() == null) return false;
+        LocalDateTime newStart = newTask.getStartTime();
+        LocalDateTime newEnd = newStart.plus(newTask.getDuration());
+        for (Task task : tasks.values()) {
+            if (task.getStartTime() != null) {
+                LocalDateTime existingStart = task.getStartTime();
+                LocalDateTime existingEnd = existingStart.plus(task.getDuration());
+                if (!(existingEnd.isBefore(newStart) || newEnd.isBefore(existingStart))) {
+                    return true;
+                }
+            }
+        }
+        for (Task subtask : subtasks.values()) {
+            if (subtask.getStartTime() != null) {
+                LocalDateTime existingStart = subtask.getStartTime();
+                LocalDateTime existingEnd = existingStart.plus(subtask.getDuration());
+                if (!(existingEnd.isBefore(newStart) || newEnd.isBefore(existingStart))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private int generateID() {

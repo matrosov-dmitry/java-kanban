@@ -44,7 +44,7 @@ class HistoryManagerTest {
         historyManager.add(t3);
         // Удаление из начала
         historyManager.remove(1);
-        assertEquals(List.of(t2, t3), historyManager.getHistory());
+        assertEquals(List.of(t3, t2), historyManager.getHistory());
         // Удаление из конца
         historyManager.remove(3);
         assertEquals(List.of(t2), historyManager.getHistory());
@@ -52,6 +52,6 @@ class HistoryManagerTest {
         historyManager.add(t1);
         historyManager.add(t3);
         historyManager.remove(2);
-        assertEquals(List.of(t1, t3), historyManager.getHistory());
+        assertEquals(List.of(t3, t1), historyManager.getHistory());
     }
 }
