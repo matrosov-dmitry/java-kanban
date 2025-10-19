@@ -2,12 +2,9 @@ package server;
 
 import com.sun.net.httpserver.HttpExchange;
 import tasks.Task;
-import tasks.TaskStatus;
 import util.TaskManager;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Optional;
 
