@@ -94,12 +94,13 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     // Собирает все задачи из списка в ArrayList
     private List<Task> getTasks() {
+        // Возвращаем историю начиная с самых новых: итерация от хвоста к голове
         List<Task> tasks = new ArrayList<>();
-        Node current = head;
+        Node current = tail;
 
         while (current != null) {
             tasks.add(current.task);
-            current = current.next;
+            current = current.prev;
         }
 
         return tasks;

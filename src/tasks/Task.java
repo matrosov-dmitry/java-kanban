@@ -13,11 +13,40 @@ public class Task {
     protected Duration duration;
     protected LocalDateTime startTime;
 
+    public Task() {
+        this.id = 0;
+        this.name = "";
+        this.description = "";
+        this.status = TaskStatus.NEW;
+        this.duration = Duration.ZERO;
+        this.startTime = null;
+    }
+
     public Task(String name, String description) {
         this.id = 0;
         this.name = name;
         this.description = description;
         this.status = TaskStatus.NEW;
+        this.duration = Duration.ZERO;
+        this.startTime = null;
+    }
+
+    // Добавлен вспомогательный конструктор для тестов: со статусом, длительностью в минутах и временем начала
+    public Task(String name, String description, TaskStatus status, int durationMinutes, LocalDateTime startTime) {
+        this.id = 0;
+        this.name = name;
+        this.description = description;
+        this.status = status != null ? status : TaskStatus.NEW;
+        this.duration = durationMinutes > 0 ? Duration.ofMinutes(durationMinutes) : Duration.ZERO;
+        this.startTime = startTime;
+    }
+
+    // Добавлен вспомогательный конструктор для тестов: со статусом, но без времени
+    public Task(String name, String description, TaskStatus status) {
+        this.id = 0;
+        this.name = name;
+        this.description = description;
+        this.status = status != null ? status : TaskStatus.NEW;
         this.duration = Duration.ZERO;
         this.startTime = null;
     }
